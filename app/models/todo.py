@@ -1,6 +1,7 @@
 from typing import List
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from extensions.db import db
+from datetime import datetime
 
 
 class Todo(db.Model):
@@ -10,6 +11,8 @@ class Todo(db.Model):
     title: Mapped[str] = mapped_column(db.String(200), nullable=False)
     done: Mapped[bool] = mapped_column(db.Boolean, default=False, nullable=False)
 
+    content: Mapped[str] = mapped_column(db.Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     # 库里真实列名就是 user_id，别再写成 owner_id
     user_id: Mapped[int] = mapped_column(db.ForeignKey("user.id"), index=True)
 
@@ -18,13 +21,13 @@ class Todo(db.Model):
         "User", back_populates="todos", lazy="selectin"
     )
 
-    def to_dict(self) -> dict:
+    def to_dict(self):
         return {
             "id": self.id,
             "title": self.title,
+            "content": self.content,
             "done": self.done,
-            "owner_id": self.user_id,
-            "owner": self.owner.username if self.owner else None,
+            "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S") if self.created_at else None
         }
 
     def __repr__(self) -> str:

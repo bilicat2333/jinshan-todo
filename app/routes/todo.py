@@ -20,10 +20,17 @@ def create_todo():
     if not title:
         return fail("待办标题不能空", 4201, 400)
 
-    todo = Todo(title=title, user_id=uid)
+    content = (data.get("content") or "").strip()
+    todo = Todo(title=title, content=content, user_id=uid)
     db.session.add(todo)
     db.session.commit()
-    return ok({"id": todo.id, "title": todo.title}, "建好了", 0), 201
+    return ok({
+        "id": todo.id,
+        "title": todo.title,
+        "content": todo.content,
+        "done": todo.done,
+        "created_at": todo.created_at.strftime("%Y-%m-%d %H:%M:%S") if todo.created_at else None
+    }, "建好了", 0), 201
 
 
 @bp_todo.get("")
@@ -38,7 +45,14 @@ def list_todo():
     return ok({
         "total": len(rows),
         "items": [
-            {"id": t.id, "title": t.title, "done": t.done, "owner": t.owner.username}
+            {
+                "id": t.id,
+                "title": t.title,
+                "content": t.content,
+                "done": t.done,
+                "created_at": t.created_at.strftime("%Y-%m-%d %H:%M:%S") if t.created_at else None,
+                "owner": t.owner.username
+            }
             for t in rows
         ],
     })
@@ -60,7 +74,9 @@ def one_todo(todo_id: int):
     return ok({
         "id": todo.id,
         "title": todo.title,
+        "content": todo.content,
         "done": todo.done,
+        "created_at": todo.created_at.strftime("%Y-%m-%d %H:%M:%S") if todo.created_at else None,
         "owner": todo.owner.username,
         "dept": todo.owner.department.name if todo.owner.department else None,
     })
@@ -83,9 +99,17 @@ def update_todo(todo_id: int):
         todo.done = bool(data["done"])
     if "title" in data and str(data["title"]).strip():
         todo.title = str(data["title"]).strip()
+    if "content" in data:
+        todo.content = str(data["content"]).strip()
 
     db.session.commit()
-    return ok({"id": todo.id, "title": todo.title, "done": todo.done}, "改好了")
+    return ok({
+        "id": todo.id,
+        "title": todo.title,
+        "content": todo.content,
+        "done": todo.done,
+        "created_at": todo.created_at.strftime("%Y-%m-%d %H:%M:%S") if todo.created_at else None
+    }, "改好了")
 
 
 @bp_todo.delete("/<int:todo_id>")
