@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>金山待办 · Todo</title>
+<style>
+  :root {
+    --primary: #4f6ef7;
+    --primary-dark: #3b55d9;
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --text: #1f2430;
+    --text-sub: #7a8194;
+    --border: #e5e9f2;
+    --danger: #e5484d;
+    --ok: #2f9e6e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 48px 16px;
+  }
+  .wrap { width: 100%; max-width: 520px; }
+
+  /* ── 卡片 ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 6px 24px rgba(31, 36, 48, .06);
+  }
+  .brand { text-align: center; margin-bottom: 24px; }
+  .brand h1 { font-size: 22px; }
+  .brand p { color: var(--text-sub); font-size: 13px; margin-top: 6px; }
+
+  /* ── 表单 ── */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; color: var(--text-sub); margin-bottom: 6px; }
+  .field input {
+    width: 100%; padding: 11px 13px;
+    border: 1px solid var(--border); border-radius: 9px;
+    font-size: 14px; outline: none; transition: border-color .15s;
+  }
+  .field input:focus { border-color: var(--primary); }
+  .btn {
+    width: 100%; padding: 11px;
+    background: var(--primary); color: #fff;
+    border: none; border-radius: 9px;
+    font-size: 15px; cursor: pointer; transition: background .15s;
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
+  .hint { text-align: center; font-size: 12px; color: var(--text-sub); margin-top: 14px; }
+  .hint code { background: #eef1f8; padding: 2px 6px; border-radius: 5px; }
+
+  /* ── 顶栏 ── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .who { font-size: 14px; }
+  .who b { color: var(--primary); }
+  .who span { color: var(--text-sub); font-size: 12px; margin-left: 8px; }
+  .logout {
+    background: none; border: 1px solid var(--border); color: var(--text-sub);
+    padding: 6px 14px; border-radius: 8px; font-size: 13px; cursor: pointer;
+  }
+  .logout:hover { color: var(--danger); border-color: var(--danger); }
+
+  /* ── 新建 ── */
+  .newrow { display: flex; gap: 10px; margin-bottom: 18px; }
+  .newrow input {
+    flex: 1; padding: 11px 13px;
+    border: 1px solid var(--border); border-radius: 9px;
+    font-size: 14px; outline: none;
+  }
+  .newrow input:focus { border-color: var(--primary); }
+  .newrow button {
+    padding: 0 20px; background: var(--primary); color: #fff;
+    border: none; border-radius: 9px; font-size: 14px; cursor: pointer;
+  }
+  .newrow button:hover { background: var(--primary-dark); }
+
+  /* ── 列表 ── */
+  .todo {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 14px;
+    border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 10px; background: #fff;
+    transition: opacity .15s;
+  }
+  .todo input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--ok); cursor: pointer; flex-shrink: 0; }
+  .todo .title { flex: 1; font-size: 14px; word-break: break-all; }
+  .todo.done .title { text-decoration: line-through; color: var(--text-sub); }
+  .todo .time { font-size: 11px; color: var(--text-sub); flex-shrink: 0; }
+  .todo .del {
+    background: none; border: none; color: var(--text-sub);
+    font-size: 16px; cursor: pointer; line-height: 1; padding: 2px 4px; flex-shrink: 0;
+  }
+  .todo .del:hover { color: var(--danger); }
+
+  .empty { text-align: center; color: var(--text-sub); font-size: 13px; padding: 36px 0; }
+  .meta { text-align: center; color: var(--text-sub); font-size: 12px; margin-top: 16px; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-8px);
+    background: #2a2f3a; color: #fff; font-size: 13px;
+    padding: 10px 20px; border-radius: 9px;
+    opacity: 0; pointer-events: none; transition: all .25s;
+    max-width: 80vw;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.err { background: var(--danger); }
+  #toast.ok { background: var(--ok); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 登录视图 -->
+  <div class="card" id="view-login" style="display:none">
+    <div class="brand">
+      <h1>金山待办</h1>
+      <p>登录后管理你的待办事项</p>
+    </div>
+    <form id="login-form">
+      <div class="field">
+        <label>用户名</label>
+        <input id="in-user" autocomplete="username" placeholder="zhangsan" required>
+      </div>
+      <div class="field">
+        <label>密码</label>
+        <input id="in-pass" type="password" autocomplete="current-password" placeholder="123456" required>
+      </div>
+      <button class="btn" id="btn-login" type="submit">登 录</button>
+    </form>
+    <div class="hint">测试账号 <code>zhangsan / 123456</code> 或 <code>lisi / 123456</code></div>
+    <div class="hint"><a href="javascript:void(0)" id="go-register">没有账号？注册一个 →</a></div>
+  </div>
+
+  <!-- 注册视图 -->
+  <div class="card" id="view-register" style="display:none">
+    <div class="brand">
+      <h1>注册账号</h1>
+      <p>注册成功后自动登录</p>
+    </div>
+    <form id="register-form">
+      <div class="field">
+        <label>用户名（3-20 位字母/数字/下划线）</label>
+        <input id="reg-user" autocomplete="username" maxlength="20" placeholder="如：xiaowang" required>
+      </div>
+      <div class="field">
+        <label>昵称（选填，默认同用户名）</label>
+        <input id="reg-nick" maxlength="50" placeholder="怎么称呼你？">
+      </div>
+      <div class="field">
+        <label>密码（至少 6 位）</label>
+        <input id="reg-pass" type="password" autocomplete="new-password" placeholder="至少 6 位" required>
+      </div>
+      <div class="field">
+        <label>确认密码</label>
+        <input id="reg-pass2" type="password" autocomplete="new-password" placeholder="再输一遍" required>
+      </div>
+      <button class="btn" id="btn-register" type="submit">注 册</button>
+    </form>
+    <div class="hint"><a href="javascript:void(0)" id="go-login">← 已有账号，去登录</a></div>
+  </div>
+
+  <!-- 待办视图 -->
+  <div id="view-todo" style="display:none">
+    <div class="topbar">
+      <div class="who">你好，<b id="me-name">-</b><span id="me-dept"></span></div>
+      <button class="logout" id="btn-logout">退出登录</button>
+    </div>
+
+    <div class="card">
+      <div class="newrow">
+        <input id="in-title" maxlength="200" placeholder="要做什么？回车快速添加">
+        <button id="btn-add">添加</button>
+      </div>
+      <div id="todo-list"></div>
+      <div class="meta" id="list-meta"></div>
+    </div>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (s) { return document.querySelector(s); };
+  var TOKEN_KEY = 'jstodo_token';
+  var token = localStorage.getItem(TOKEN_KEY) || '';
+
+  /* ───────── Toast ───────── */
+  var toastTimer = null;
+  function toast(msg, type) {
+    var el = $('#toast');
+    el.textContent = msg;
+    el.className = 'show ' + (type || '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.className = ''; }, 2200);
+  }
+
+  /* ───────── 统一请求封装：自动带 token、统一解析 {code,msg,data} ───────── */
+  function api(path, opts) {
+    opts = opts || {};
+    var headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    return fetch('/api' + path, {
+      method: opts.method || 'GET',
+      headers: headers,
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    }).then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (json) {
+        if (!json) throw new Error('服务异常（HTTP ' + res.status + '）');
+        // token 失效：清掉本地登录态，回登录页
+        if (json.code === 4401) { logout(false); throw new Error('登录已过期，请重新登录'); }
+        return json;
+      });
+    });
+  }
+
+  /* ───────── 视图切换 ───────── */
+  function show(view) {
+    $('#view-login').style.display = view === 'login' ? '' : 'none';
+    $('#view-register').style.display = view === 'register' ? '' : 'none';
+    $('#view-todo').style.display = view === 'todo' ? '' : 'none';
+  }
+
+  /* ───────── 登录 / 注册视图互相切换 ───────── */
+  $('#go-register').addEventListener('click', function () { show('register'); });
+  $('#go-login').addEventListener('click', function () { show('login'); });
+
+  /* ───────── 注册 ───────── */
+  $('#register-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var pass = $('#reg-pass').value;
+    if (pass.length < 6) { toast('密码至少 6 位', 'err'); return; }
+    if (pass !== $('#reg-pass2').value) { toast('两次密码不一致', 'err'); return; }
+    var btn = $('#btn-register');
+    btn.disabled = true;
+    api('/auth/register', {
+      method: 'POST',
+      body: {
+        username: $('#reg-user').value.trim(),
+        nickname: $('#reg-nick').value.trim(),
+        password: pass
+      }
+    })
+      .then(function (r) {
+        if (r.code !== 0) throw new Error(r.msg || '注册失败');
+        token = r.data.token;
+        localStorage.setItem(TOKEN_KEY, token);
+        toast('注册成功，欢迎 ' + r.data.user.nickname, 'ok');
+        enterTodo();
+      })
+      .catch(function (err) { toast(err.message, 'err'); })
+      .finally(function () { btn.disabled = false; });
+  });
+
+  /* ───────── 登录 ───────── */
+  $('#login-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = $('#btn-login');
+    btn.disabled = true;
+    api('/auth/login', { method: 'POST', body: { username: $('#in-user').value.trim(), password: $('#in-pass').value } })
+      .then(function (r) {
+        if (r.code !== 0) throw new Error(r.msg || '登录失败');
+        token = r.data.token;
+        localStorage.setItem(TOKEN_KEY, token);
+        toast('欢迎回来，' + r.data.user.nickname, 'ok');
+        enterTodo();
+      })
+      .catch(function (err) { toast(err.message, 'err'); })
+      .finally(function () { btn.disabled = false; });
+  });
+
+  /* ───────── 退出 ───────── */
+  $('#btn-logout').addEventListener('click', function () { logout(true); });
+  function logout(manual) {
+    token = '';
+    localStorage.removeItem(TOKEN_KEY);
+    $('#in-pass').value = '';
+    show('login');
+    if (manual) toast('已退出登录');
+  }
+
+  /* ───────── 进入待办页 ───────── */
+  function enterTodo() {
+    show('todo');
+    // 并行拉取用户信息和待办列表
+    api('/auth/me').then(function (r) {
+      if (r.code === 0) {
+        $('#me-name').textContent = r.data.nickname || r.data.username;
+        $('#me-dept').textContent = r.data.department ? '（' + r.data.department + '）' : '';
+      }
+    }).catch(function () {});
+    loadList();
+  }
+
+  /* ───────── 列表 ───────── */
+  function loadList() {
+    api('/todo').then(function (r) {
+      if (r.code !== 0) throw new Error(r.msg || '加载失败');
+      render(r.data.items || []);
+    }).catch(function (err) { toast(err.message, 'err'); });
+  }
+
+  function render(items) {
+    var box = $('#todo-list');
+    box.innerHTML = '';
+    $('#list-meta').textContent = items.length ? ('共 ' + items.length + ' 条待办') : '';
+    if (!items.length) {
+      box.innerHTML = '<div class="empty">还没有待办，添加第一条试试～</div>';
+      return;
+    }
+    items.forEach(function (t) {
+      var row = document.createElement('div');
+      row.className = 'todo' + (t.done ? ' done' : '');
+
+      var ck = document.createElement('input');
+      ck.type = 'checkbox';
+      ck.checked = !!t.done;
+      ck.title = t.done ? '标记为未完成' : '标记为完成';
+      ck.addEventListener('change', function () { toggle(t, ck.checked); });
+
+      var title = document.createElement('div');
+      title.className = 'title';
+      title.textContent = t.title;
+
+      var time = document.createElement('div');
+      time.className = 'time';
+      time.textContent = (t.created_at || '').slice(5, 10); // 只显示 月-日
+
+      var del = document.createElement('button');
+      del.className = 'del';
+      del.textContent = '✕';
+      del.title = '删除';
+      del.addEventListener('click', function () { remove(t); });
+
+      row.appendChild(ck);
+      row.appendChild(title);
+      row.appendChild(time);
+      row.appendChild(del);
+      box.appendChild(row);
+    });
+  }
+
+  /* ───────── 增 / 改 / 删 ───────── */
+  function add() {
+    var input = $('#in-title');
+    var title = input.value.trim();
+    if (!title) { toast('先写点内容再添加', 'err'); return; }
+    api('/todo', { method: 'POST', body: { title: title } })
+      .then(function (r) {
+        if (r.code !== 0) throw new Error(r.msg || '添加失败');
+        input.value = '';
+        toast('已添加', 'ok');
+        loadList();
+      })
+      .catch(function (err) { toast(err.message, 'err'); });
+  }
+  $('#btn-add').addEventListener('click', add);
+  $('#in-title').addEventListener('keydown', function (e) { if (e.key === 'Enter') add(); });
+
+  function toggle(t, done) {
+    api('/todo/' + t.id, { method: 'PATCH', body: { done: done } })
+      .then(function (r) {
+        if (r.code !== 0) throw new Error(r.msg || '更新失败');
+        loadList();
+      })
+      .catch(function (err) { toast(err.message, 'err'); loadList(); }); // 失败回滚 UI
+  }
+
+  function remove(t) {
+    api('/todo/' + t.id, { method: 'DELETE' })
+      .then(function (r) {
+        if (r.code !== 0) throw new Error(r.msg || '删除失败');
+        toast('已删除');
+        loadList();
+      })
+      .catch(function (err) { toast(err.message, 'err'); });
+  }
+
+  /* ───────── 启动：有 token 直接进待办页，401 会被统一拦截踢回登录 ───────── */
+  if (token) { enterTodo(); } else { show('login'); }
+})();
+</script>
+</body>
+</html>

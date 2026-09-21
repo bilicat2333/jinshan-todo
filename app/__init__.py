@@ -1,8 +1,13 @@
-from flask import Flask, jsonify
+import os
+
+from flask import Flask, jsonify, send_from_directory
 from sqlalchemy.exc import NoResultFound
 from extensions.db import db
 from flask_jwt_extended import JWTManager
 from config import DevConfig, ProdConfig
+
+# 静态前端页面放在项目根目录的 static/ 下
+_STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
 
 configs = {
     "dev": DevConfig,
@@ -10,7 +15,7 @@ configs = {
 }
 
 def create_app(profile="dev"):
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder=_STATIC_DIR)
 
     app.config.from_object(configs[profile])
 
@@ -36,6 +41,11 @@ def create_app(profile="dev"):
     def internal_error(e):
         db.session.rollback()
         return jsonify({"code": 4500, "msg": "服务器内部错误", "data": None}), 500
+
+    @app.get("/")
+    def index():
+        # 静态前端页面（原生 JS 单页，调 /api 下的 RESTful 接口）
+        return send_from_directory(app.static_folder, "index.html")
 
     from app.routes.auth import bp_auth
     from app.routes.todo import bp_todo
