@@ -1,6 +1,13 @@
 ﻿# 金山学院待办事项系统
 
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.1-000000?logo=flask&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+
 基于 Flask + SQLAlchemy 2.0 + JWT 的待办事项系统，提供 RESTful API 和一个开箱即用的前端单页，用于课程设计与实习项目展示。
+
+> 开源地址：https://github.com/bilicat2333/jinshan-todo
 
 ## 功能特性
 
@@ -171,4 +178,4 @@ curl http://127.0.0.1:5000/api/todo -H "Authorization: Bearer <token>"
 
 ## 许可证
 
-MIT
+[MIT](./LICENSE)
