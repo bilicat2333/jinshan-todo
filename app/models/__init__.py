@@ -10,5 +10,4 @@ from app.models.permission import Permission
 from app.models.user_extension import UserExtension
 from app.models.todo import Todo
 
-# 👆 注意：这里一行 relationship 都不写！
-# 关系已经在两个类里声明完了，SQLAlchemy 自动双向牵手，根本不需要在 __init__ 再补
+# 关系已在各模型类内声明完成，这里不需要再补 relationship

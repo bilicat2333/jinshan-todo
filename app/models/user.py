@@ -12,7 +12,7 @@ class User(db.Model):
     username: Mapped[str] = mapped_column(db.String(50), unique=True, nullable=False, index=True)
     nickname: Mapped[str] = mapped_column(db.String(50), default="新同学")
 
-    # ✅ 真正在库里的字段叫这个，外面碰不到明文
+    # Python 属性名与库列名刻意分离：库里存哈希，外部拿不到明文
     _password_hash: Mapped[str] = mapped_column("password", db.String(255), nullable=False)
 
     department_id: Mapped[int | None] = mapped_column(db.ForeignKey("department.id"))

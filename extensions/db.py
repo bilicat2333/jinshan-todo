@@ -1,9 +1,4 @@
 from flask_sqlalchemy import SQLAlchemy
 
+# 单例：在 extensions 层创建，避免 models / routes 互相导入造成循环导入
 db = SQLAlchemy()
-
-
-def init_db(app):
-    db.init_app(app)
-    with app.app_context():
-        db.create_all()

@@ -2,7 +2,7 @@
 from typing import List
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from extensions.db import db
-from app.models.department_permission import department_permission as _m2m   # ✅ 拿 Table
+from app.models.department_permission import department_permission as _m2m   # 多对多关联表
 
 
 class Department(db.Model):
@@ -16,7 +16,7 @@ class Department(db.Model):
         "User", back_populates="department", lazy="selectin"
     )
 
-    # ✅ 正向就写在这里，secondary 是 Table，back_populates 叫 "departments"
+    # 多对多：secondary 指向关联表，反向属性由 Permission.departments 承接
     permissions: Mapped[list["Permission"]] = relationship(
         "Permission",
         secondary=_m2m,

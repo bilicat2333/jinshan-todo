@@ -6,7 +6,7 @@ from sqlalchemy.orm import joinedload
 bp_todo = Blueprint("todo", __name__)
 
 from extensions.db import db
-from app.models import Todo, User
+from app.models import Todo
 from app.utils.response import ok, fail
 
 

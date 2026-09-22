@@ -13,10 +13,9 @@ class Todo(db.Model):
 
     content: Mapped[str] = mapped_column(db.Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
-    # 库里真实列名就是 user_id，别再写成 owner_id
     user_id: Mapped[int] = mapped_column(db.ForeignKey("user.id"), index=True)
 
-    # Python 侧叫 owner 方便取 todo.owner.username，库列还是 user_id
+    # Python 侧属性名为 owner（便于写 todo.owner.username），库列名仍是 user_id
     owner: Mapped["User"] = relationship(
         "User", back_populates="todos", lazy="selectin"
     )

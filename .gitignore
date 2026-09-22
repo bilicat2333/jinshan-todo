@@ -31,3 +31,6 @@ Thumbs.db
 # 日志
 *.log
 logs/
+
+# 本地工作区数据（会话记录、草稿、个人笔记），不进版本库
+.workbuddy/

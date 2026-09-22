@@ -1,9 +1,8 @@
 import os
 
 from flask import Flask, jsonify, send_from_directory
-from sqlalchemy.exc import NoResultFound
 from extensions.db import db
-from flask_jwt_extended import JWTManager
+from extensions.jwt import init_jwt
 from config import DevConfig, ProdConfig
 
 # 静态前端页面放在项目根目录的 static/ 下
@@ -23,7 +22,7 @@ def create_app(profile="dev"):
         raise RuntimeError("生产环境必须设置 JWT_SECRET_KEY 环境变量！")
 
     db.init_app(app)
-    jwt = JWTManager(app)
+    init_jwt(app)
 
     @app.errorhandler(404)
     def not_found(e):

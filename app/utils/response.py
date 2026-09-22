@@ -7,5 +7,5 @@ def ok(data=None, msg="ok", code=0):
 
 
 def fail(msg="失败", code=4000, status=400):
-    from flask import jsonify
-    return jsonify(code=code, msg=msg), status
+    # 失败响应同样补齐 data 字段，保持接口契约始终是 {code, msg, data}
+    return jsonify(code=code, msg=msg, data=None), status
