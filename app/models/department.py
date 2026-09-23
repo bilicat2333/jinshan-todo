@@ -13,15 +13,15 @@ class Department(db.Model):
     remark: Mapped[str | None] = mapped_column(db.String(200))
 
     users: Mapped[list["User"]] = relationship(
-        "User", back_populates="department", lazy="selectin"
+        "User", back_populates="department", lazy="select"
     )
 
     # 多对多：secondary 指向关联表，反向属性由 Permission.departments 承接
+    # 权限是预留功能，暂无接口使用，保持默认懒加载避免每次加载部门都连带查权限
     permissions: Mapped[list["Permission"]] = relationship(
         "Permission",
         secondary=_m2m,
         back_populates="departments",
-        lazy="selectin",
     )
 
     def __repr__(self) -> str:

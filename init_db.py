@@ -4,8 +4,7 @@ sys.path.insert(0, ".")
 
 from app import create_app
 from extensions.db import db
-from app.models import User, Department
-from werkzeug.security import generate_password_hash
+from app.models import User, Department, UserExtension
 
 app = create_app("dev")
 
@@ -20,19 +19,21 @@ with app.app_context():
 
     dept = Department.query.filter_by(name="计算机系").first()
 
-    # 张三
-    zs = User.query.filter_by(username="zhangsan").first()
-    if not zs:
-        zs = User(username="zhangsan", nickname="三哥", student_no="20210901", dept_id=dept.id)
-        zs.password = "123456"
-        db.session.add(zs)
+    def make_user(username: str, nickname: str, student_no: str) -> User:
+        """幂等创建：已存在就跳过。学号在扩展表上，与用户一起提交。"""
+        user = User.query.filter_by(username=username).first()
+        if user:
+            return user
+        user = User(username=username, nickname=nickname, department_id=dept.id)
+        user.password = "123456"  # setter 内自动哈希
+        user.extension = UserExtension(student_no=student_no)
+        db.session.add(user)
+        return user
 
+    # 张三
+    make_user("zhangsan", "三哥", "20210901")
     # 李四（用来演示越权）
-    ls = User.query.filter_by(username="lisi").first()
-    if not ls:
-        ls = User(username="lisi", nickname="四妹", student_no="20210902", dept_id=dept.id)
-        ls.password = "123456"
-        db.session.add(ls)
+    make_user("lisi", "四妹", "20210902")
 
     db.session.commit()
     print("✅ 初始化完成：")

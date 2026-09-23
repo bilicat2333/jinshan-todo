@@ -23,8 +23,9 @@ class User(db.Model):
     extension: Mapped["UserExtension"] = relationship(
         "UserExtension", back_populates="user", cascade="all, delete-orphan", lazy="selectin", uselist=False
     )
+    # 集合关系不用 selectin：待办可能很多，且多数接口用不到，按需加载即可
     todos: Mapped[List["Todo"]] = relationship(
-        "Todo", back_populates="owner", cascade="all, delete-orphan", lazy="selectin"
+        "Todo", back_populates="owner", cascade="all, delete-orphan"
     )
 
     # ─── 保险箱：只能写、不能读 ───
