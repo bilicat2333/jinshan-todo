@@ -62,7 +62,11 @@ def register():
     user = User(username=username, nickname=nickname or username)
     user.password = password  # setter 内自动哈希，库里只存密文
     db.session.add(user)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return fail("用户名已被占用", 4005, 409)
 
     # 注册成功直接发 token，省一次登录
     token = create_access_token(identity=str(user.id))
