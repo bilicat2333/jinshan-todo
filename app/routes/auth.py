@@ -8,6 +8,7 @@ from sqlalchemy.orm import joinedload
 from extensions.db import db
 from app.models import User
 from app.utils.response import fail, ok
+from sqlalchemy.exc import IntegrityError
 
 # 蓝图在路由模块内创建，不反向导入 app，避免循环导入
 bp_auth = Blueprint("auth", __name__)
