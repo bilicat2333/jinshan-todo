@@ -88,11 +88,8 @@ def update_todo(todo_id: int):
     uid = int(get_jwt_identity())
 
     todo = db.session.get(Todo, todo_id)
-    if not todo:
-        return fail("待办不存在", 4404, 404)
-
-    if todo.user_id != uid:
-        return fail("无权操作别人的待办", 4104, 403)
+    if not todo or todo.user_id != uid:
+        return fail("待办不存在或无权操作", 4404, 404)
 
     data = request.get_json(silent=True) or {}
     if "done" in data:
@@ -118,11 +115,8 @@ def delete_todo(todo_id: int):
     uid = int(get_jwt_identity())
 
     todo = db.session.get(Todo, todo_id)
-    if not todo:
-        return fail("待办不存在", 4404, 404)
-
-    if todo.user_id != uid:
-        return fail("无权删除别人的待办", 4104, 403)
+    if not todo or todo.user_id != uid:
+        return fail("待办不存在或无权操作", 4404, 404)
 
     db.session.delete(todo)
     db.session.commit()

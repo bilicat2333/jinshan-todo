@@ -16,7 +16,7 @@ class Permission(db.Model):
         "Department",
         secondary=_m2m,
         back_populates="permissions",
-        lazy="selectin",
+        lazy="select",
     )
 
     def __repr__(self) -> str:

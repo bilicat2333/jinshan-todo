@@ -11,7 +11,7 @@ class Todo(db.Model):
     title: Mapped[str] = mapped_column(db.String(200), nullable=False)
     done: Mapped[bool] = mapped_column(db.Boolean, default=False, nullable=False)
 
-    content: Mapped[str] = mapped_column(db.Text, nullable=True)
+    content: Mapped[str | None] = mapped_column(db.Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     user_id: Mapped[int] = mapped_column(db.ForeignKey("user.id"), index=True)
 
