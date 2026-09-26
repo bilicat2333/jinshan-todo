@@ -8,7 +8,7 @@ class Todo(db.Model):
     __tablename__ = "todo"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str] = mapped_column(db.String(200), nullable=False)
+    title: Mapped[str] = mapped_column(db.String(100), nullable=False)
     done: Mapped[bool] = mapped_column(db.Boolean, default=False, nullable=False)
 
     content: Mapped[str | None] = mapped_column(db.Text, nullable=True)

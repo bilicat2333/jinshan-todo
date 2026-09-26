@@ -10,7 +10,7 @@ class User(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(db.String(50), unique=True, nullable=False, index=True)
-    nickname: Mapped[str] = mapped_column(db.String(50), default="新同学")
+    nickname: Mapped[str | None] = mapped_column(db.String(50), default="新同学")
 
     # Python 属性名与库列名刻意分离：库里存哈希，外部拿不到明文
     _password_hash: Mapped[str] = mapped_column("password", db.String(255), nullable=False)
